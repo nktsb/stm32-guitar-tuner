@@ -9,13 +9,13 @@ Used in this project:
 - C + CMSIS + LL;
 - Make.
 
-## Links:
-
-[Circuit/PCB design](https://github.com/nktsb/stm32_guitar_tuner/tree/main/PCB%2C%20Schematic%2C%20etc)
-
-[STM32 project (VSCode)](./stm32_project)
-
 ## Build:
+
+### Prerequisites:
+
+- [ARM GCC Toolchain](https://developer.arm.com/downloads/-/gnu-rm)
+- [OpenOCD](http://openocd.org/)
+- Visual Studio Code with `Cortex-Debug` extension
 
 To build and flash STM32 project, open project in VSCode and open tasks menu with hotkeys:
 
@@ -26,14 +26,6 @@ To build and flash STM32 project, open project in VSCode and open tasks menu wit
 ***MacOS:***
 
 <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>
-
-### Menu:
-
-![Alt text](Demo/image.png)
-
-*JL - JLink*
-
-*ST - STLink*
 
 
 ## Demo:
