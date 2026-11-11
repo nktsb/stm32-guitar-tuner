@@ -13,6 +13,9 @@
 
 {
     "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}"
+    },
     "tasks": [
         {
             "label": "GIT_submodules",

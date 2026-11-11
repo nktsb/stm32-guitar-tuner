@@ -30,7 +30,6 @@
 # Misc
 *.map
 *.m
-*.png
 
 # Vagrant directory
 .vagrant/
@@ -45,7 +44,3 @@
 /lib
 /Output
 .settings/
-
-# Scripts .venv
-
-Scripts/encrypt/.venv/

@@ -46,21 +46,22 @@ The assembled tuner in its enclosure, followed by a demonstration of the tuning 
 ## How it works
 
 ```text
-Input signal → TIM1 input capture → Period-to-frequency conversion
-                                          ↓
-LED matrix ← Note + tuning position ← Note lookup and averaging
-
-Battery voltage → ADC → Battery status / warning screens
+Guitar signal → Op-amp amplification → Schmitt trigger → Digital pulses
+                                                              ↓
+                                                     TIM1 input capture
+                                                              ↓
+                                         Period-to-frequency conversion
+                                                              ↓
+        LED matrix ← Note + tuning position ← Note lookup and averaging
 ```
 
-1. **Measure the period.** TIM1 captures incoming edges on PA8. With the timer running at 1 MHz, the captured interval is expressed in microseconds.
-2. **Identify the note.** The firmware converts the period into frequency, folds higher octaves into a reference octave, and compares the result with a table of note boundaries.
-3. **Stabilize the reading.** It averages 12 frequency readings assigned to the same note and calculates the tuning indicator position.
-4. **Update the display.** The note glyph and indicator are sent over SPI to the LED display. The display clears after about one second without a new note update.
+1. **Condition the signal.** The guitar's analog signal is amplified by an op-amp, then converted into digital pulses by a Schmitt trigger. These pulses feed the timer input.
+2. **Measure the period.** TIM1 captures incoming edges on PA8. With the timer running at 1 MHz, the captured interval is expressed in microseconds.
+3. **Identify the note.** The firmware converts the period into frequency, folds higher octaves into a reference octave, and compares the result with a table of note boundaries.
+4. **Stabilize the reading.** It averages 12 frequency readings assigned to the same note and calculates the tuning indicator position.
+5. **Update the display.** The note glyph and indicator are sent over SPI to the LED display. The display clears after about one second without a new note update.
 
-The main loop services the display, note calculation, and battery checks. Timer interrupts supply period measurements; the firmware runs without an RTOS.
-
-See [`notes.c`](stm32_project/Core/Src/tuner_components/notes.c) for note detection and [`stm_timers.c`](stm32_project/Core/Src/hardware/stm_timers.c) for input capture.
+The main loop services the display, note calculation, and battery checks. Timer interrupts supply period measurements.
 
 ## Hardware
 
@@ -92,22 +93,20 @@ The letter identifies the detected note, `#` marks a sharp, and the lower indica
 
 ### Prerequisites
 
-- GNU Arm toolchain: `arm-none-eabi-gcc`, `arm-none-eabi-objcopy`, and `arm-none-eabi-size` available on `PATH`.
-- Make.
-- OpenOCD and a compatible SWD probe for programming the board.
-- For the editor workflow: Visual Studio Code with the **Cortex-Debug** extension and `arm-none-eabi-gdb`.
-- For the supplied VS Code tasks: Bash and `readlink -f`. Windows settings select Git Bash; on macOS, check that the installed `readlink` supports `-f`.
+- GNU Arm toolchain: `arm-none-eabi-gcc` available on `PATH`
+- Make
+- OpenOCD and a compatible SWD probe for programming the board
+- For the editor workflow: Visual Studio Code with the **Cortex-Debug** extension
 
 ### Build from a terminal
 
 From the repository root:
 
 ```sh
-cd stm32_project
-make build -j4 output_path=Output/App cmakelist=Scripts/build/app_sources.mk
+make build -j4 output_path=Output/App cmakelist=scripts/build/app_sources.mk
 ```
 
-The build produces these files in `stm32_project/Output/App/`:
+The build produces these files in `Output/App/`:
 
 | File | Purpose |
 | :--- | :--- |
@@ -119,7 +118,7 @@ If the compiler is outside `PATH`, pass `GCC_PATH=/path/to/toolchain/bin` to Mak
 
 ### Flash with ST-Link
 
-Connect the probe to the board's SWD signals and ground. After building, run this command from `stm32_project/` to program and verify the firmware, then reset the MCU:
+Connect the probe to the board's SWD signals and ground. After building, run this command from the repository root to program and verify the firmware, then reset the MCU:
 
 ```sh
 openocd -f interface/stlink.cfg -f target/stm32f0x.cfg \
@@ -128,8 +127,8 @@ openocd -f interface/stlink.cfg -f target/stm32f0x.cfg \
 
 ### Build and debug in VS Code
 
-1. Open **`stm32_project/`** as the workspace folder so VS Code loads the supplied `.vscode` configuration.
-2. Check tool paths and probe settings in [`.vscode/settings.json`](stm32_project/.vscode/settings.json).
+1. Open **the repository root** as the workspace folder so VS Code loads the supplied `.vscode` configuration.
+2. Check tool paths and probe settings in [`.vscode/settings.json`](.vscode/settings.json).
 3. Open **Terminal → Run Build Task** with <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd> on Windows/Linux or <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd> on macOS, then select **🛠 Build App**.
 4. To program using ST-Link, select **📘 🔵 ST App erase + flash** from the task menu. This task builds the firmware, erases the target flash, and writes the new image.
 5. For debugging, select an ST-Link or J-Link launch configuration in **Run and Debug**.
@@ -141,19 +140,18 @@ The VS Code build task also copies `.hex` and `.bin` files to `Output/Artifacts/
 ```text
 .
 ├── .github/assets/            # Board render, device photo, demo GIF and display guide
+├── .vscode/                   # Build tasks and debugger configuration
 ├── schematic/                 # Circuit schematic (PDF)
-└── stm32_project/
-    ├── .vscode/               # Build tasks and debugger configuration
-    ├── Core/
-    │   ├── Inc/               # Application headers
-    │   └── Src/
-    │       ├── main.c         # Startup and main loop
-    │       ├── hardware/      # ADC, SPI and timer setup
-    │       ├── tuner_components/
-    │       │                  # Note detection, display, battery and screens
-    │       └── utils/         # Timing helpers
-    ├── Drivers/               # CMSIS and STM32 drivers
-    ├── OCD/                   # OpenOCD configuration and device description
-    ├── Scripts/               # Build and debug helpers
-    └── Makefile
+├── Core/
+│   ├── Inc/                   # Application headers
+│   └── Src/
+│       ├── main.c             # Startup and main loop
+│       ├── hardware/          # ADC, SPI and timer setup
+│       ├── tuner_components/  # Note detection, display, battery and screens
+│       └── utils/             # Timing helpers
+├── Drivers/                   # CMSIS and STM32 drivers
+├── OCD/                       # OpenOCD configuration and device description
+├── scripts/                   # Build and debug helpers
+├── STM32F042K6TX_FLASH.ld      # Linker script
+└── Makefile
 ```

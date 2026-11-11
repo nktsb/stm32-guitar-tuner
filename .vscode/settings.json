@@ -7,7 +7,7 @@
     "terminal.integrated.defaultProfile.windows": "Git Bash",
 
     "output_path_name": "Output",
-    "scripts_path_name": "Scripts",
+    "scripts_path_name": "scripts",
     
     "app_project_path": ".",
     "app_file_name": "STM32-guitar-tuner",
